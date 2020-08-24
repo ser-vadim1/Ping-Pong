@@ -1,6 +1,12 @@
 import styled, { keyframes } from "styled-components";
 import { Link } from "react-router-dom";
-export const NavContainer = styled.nav`
+export const NavContainer = styled.div`
+  color: white;
+  background-color: black;
+`;
+export const NavWrapper = styled.nav`
+  margin: 0 auto;
+  max-width: 1200px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -9,10 +15,10 @@ export const NavContainer = styled.nav`
   background-color: black;
 `;
 export const Ul = styled.ul`
-  min-width: 500px;
+  min-width: ${({ _width }) => (_width ? 200 + "px" : 500 + "px")};
   list-style: none;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   color: white;
 `;
@@ -37,4 +43,16 @@ export const NavLink = styled(Link)`
   &:hover:after {
     width: 100%;
   }
+`;
+
+export const Wrapperphoto = styled.div`
+  height: 10vh;
+  max-width: 5%;
+`;
+
+export const IMG = styled.img`
+  margin-top: -9px;
+  display: block;
+  width: 75px;
+  height: 70px;
 `;

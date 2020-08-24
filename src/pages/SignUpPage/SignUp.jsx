@@ -32,10 +32,14 @@ export const SignUp = (props) => {
   const { _error } = useContext(AuthContext);
   const [background_email, setBackEmail] = useState(false);
   const [background_pass, setBackpass] = useState(false);
+  const [backround_text, setBackText] = useState(false);
 
   const _onBlur = ({ target: { value, type } }) => {
     if (value && type === "email") {
       setBackEmail(true);
+    }
+    if (value && type == "text") {
+      setBackText(true);
     }
     if (value && type === "password") {
       setBackpass(true);
@@ -87,7 +91,7 @@ export const SignUp = (props) => {
                       onChange={onChange(2)}
                       type="text"
                       onBlur={_onBlur}
-                      background={background_pass}
+                      background={backround_text}
                       error={errors.errorWeakPass}
                     ></Input>
                     <Span>

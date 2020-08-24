@@ -8,11 +8,7 @@ export const WrapperCanvas = styled.div`
   transform: translate(-50%, -50%);
 `;
 export const Canvas = styled.canvas`
-  background: rgb(19, 19, 19);
-  background: linear-gradient(
-    90deg,
-    rgba(19, 19, 19, 0.8211659663865546) 100%,
-    rgba(216, 216, 226, 1) 100%
+background-color: black;
   );
 `;
 

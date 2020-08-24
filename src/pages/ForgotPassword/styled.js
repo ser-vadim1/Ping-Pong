@@ -29,7 +29,7 @@ export const SubmitSignUp = styled.button`
   cursor: pointer;
   padding: 20px;
   border-radius: 5px;
-  margin-top: 0px;
+  margin-top: 20px;
   background-color: rgba(245, 175, 12);
   width: 100%;
   border: none;

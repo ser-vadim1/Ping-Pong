@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, Fragment } from "react";
 import usePaintBall from "../hooks/usePaintBall/usePaintBall.js";
 import { Canvas, WrapperCanvas, ComputerRocket, PlayerRocket } from "./styled";
-
+import * as firebase from "firebase";
 // COMPONENT
 const Game = () => {
   let canvasRef = useRef(null);
   let playerRocketRef = useRef(null);
   let ComputerRocketRef = useRef(null);
   let animateBall = useRef(null);
-  let animateRef = useRef(null);
+  let animateRocketRef = useRef(null);
   const [Score, SetScore] = useState(0);
   const [width] = useState(window.innerWidth / 1.5);
   const [height] = useState(window.innerHeight / 1.5);
@@ -23,6 +23,12 @@ const Game = () => {
     speed_Y: -4,
     acceleration: 1.2,
   });
+
+  let userId = firebase.auth().currentUser.email;
+  const lol = () => {
+    console.log(userId);
+  };
+
   const paintBall = usePaintBall();
   useEffect(() => {
     paintBall(canvasRef, moveBall.x, moveBall.y);
@@ -47,15 +53,15 @@ const Game = () => {
         } else {
           setTop_ComputerRocket(moveBall.y - 50);
         }
-        animateRef.current = requestAnimationFrame(animate);
+        animateRocketRef.current = requestAnimationFrame(animate);
       } else {
-        cancelAnimationFrame(animateRef.current);
+        cancelAnimationFrame(animateRocketRef.current);
         setTop_ComputerRocket(height / 2 - 50);
       }
     };
     animate();
     return () => {
-      cancelAnimationFrame(animateRef.current);
+      cancelAnimationFrame(animateRocketRef.current);
       cancelAnimationFrame(animateBall.current);
     };
   }, [startGame]);
@@ -94,11 +100,13 @@ const Game = () => {
         moveBall.speed_X = -moveBall.speed_X;
       } else if (moveBall.x < 0) {
         moveBall.x = 43;
-        moveBall.y = height / 2;
+        moveBall.y = Math.round(height / 2);
         paintBall(canvasRef, moveBall.x, moveBall.y, width, height);
         setTop_PlayerRocket(height / 2 - 50);
         setStartGame(false);
+        SetScore((prev) => prev + 1);
         cancelAnimationFrame(animateBall.current);
+
         return;
       } else if (
         moveBall.x <= 40 &&
@@ -107,6 +115,7 @@ const Game = () => {
       ) {
         moveBall.speed_X = -moveBall.speed_X;
       }
+
       moveBall.y += moveBall.speed_Y;
       moveBall.x += moveBall.speed_X;
       animateBall.current = requestAnimationFrame(movingBall);
@@ -116,6 +125,9 @@ const Game = () => {
 
   return (
     <Fragment>
+      <h4>SCORE</h4>
+      <h3>player: {Score} Computer: 0</h3>
+      <button onClick={lol}>click me</button>
       <WrapperCanvas>
         <Canvas
           onTouchStart={movingBall}

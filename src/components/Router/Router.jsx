@@ -3,9 +3,9 @@ import { HomePage } from "../../pages/HomePage/Game";
 import { SignIn } from "../../pages/SignInPage/signIn.jsx";
 import { SignUp } from "../../pages/SignUpPage/SignUp.jsx";
 import { Score } from "../../pages/Score/Score";
+import { ForgotPassword } from "../../pages/ForgotPassword/ForgotPassword";
 
 import { BrowserRouter, Switch, Route, Redirect } from "react-router-dom";
-import { AuthLayout } from "../Auth/index";
 import { AuthNav } from "../nav/nav";
 import { AuthContext } from "../Auth/index";
 
@@ -25,6 +25,9 @@ export const _Router = () => {
           <SignIn />
         </Route>
         <Route path="/Score">{isAuth ? <Score /> : <Redirect to="/" />}</Route>
+        <Route path="/ResetPassword">
+          <ForgotPassword />
+        </Route>
       </Switch>
     </BrowserRouter>
   );

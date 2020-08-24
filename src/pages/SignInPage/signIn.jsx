@@ -1,19 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  Fragment,
-  useMemo,
-  useContext,
-} from "react";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link,
-  useHistory,
-  useLocation,
-} from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
 import {
   ContainerForm,
   WrapperSignIn,
@@ -28,8 +13,8 @@ import {
   Wrapper_P,
 } from "./styledSignIn";
 import { Redirect } from "react-router-dom";
-import { AuthConsumer } from "../../components/Auth/index";
 import { AuthContext } from "../../components/Auth/index";
+import { Preloader } from "../../components/preloader/Preloader";
 
 export const SignIn = (props) => {
   const [errors, setErrors] = useState({
@@ -39,9 +24,7 @@ export const SignIn = (props) => {
   });
 
   const [authData, setAuthData] = useState(["", ""]);
-  const { isAuth, onLoginIn, _error, isEmailVerified } = useContext(
-    AuthContext
-  );
+  const { isAuth, onLoginIn, _error, loading } = useContext(AuthContext);
   const [background_email, setBackEmail] = useState(false);
   const [background_pass, setBackpass] = useState(false);
 
@@ -84,9 +67,17 @@ export const SignIn = (props) => {
   };
   if (isAuth) {
     return <Redirect to="/Game" />;
+  } else if (loading) {
+    return (
+      <>
+        <Preloader />
+      </>
+    );
   }
   return (
-    <Fragment>
+    <>
+      <h4>ser.vadim1@gmail.com</h4>
+      <h4>inspired_by_the_idea@outlook.com</h4>
       <ContainerForm>
         <WrapperSignIn>
           <Form>
@@ -130,12 +121,14 @@ export const SignIn = (props) => {
                 If you don't have an account you may create one
                 <StyledLink to="/SignUp"> HERE </StyledLink>
               </P>
-              <P>{isEmailVerified ? "You must confirm email" : ""}</P>
+              <P>
+                <StyledLink to="/ResetPassword">Forget password ?</StyledLink>
+              </P>
             </Wrapper_P>
             <SubmitSignUp onClick={submitClick}>SIGN IN</SubmitSignUp>
           </Form>
         </WrapperSignIn>
       </ContainerForm>
-    </Fragment>
+    </>
   );
 };

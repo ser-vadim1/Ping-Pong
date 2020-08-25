@@ -16,6 +16,7 @@ export const AuthLayout = ({ children }) => {
   });
   let auth = firebase.auth();
   let defaultDatabase = firebase.database();
+  let testGit = "Test git";
 
   const onLoginUp = async (email, password, displayName) => {
     try {

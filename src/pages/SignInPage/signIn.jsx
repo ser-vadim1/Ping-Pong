@@ -24,7 +24,7 @@ export const SignIn = (props) => {
   });
 
   const [authData, setAuthData] = useState(["", ""]);
-  const { isAuth, onLoginIn, _error, loading } = useContext(AuthContext);
+  const { isAuth, onLoginIn, _error, loading, mode } = useContext(AuthContext);
   const [background_email, setBackEmail] = useState(false);
   const [background_pass, setBackpass] = useState(false);
 
@@ -65,6 +65,7 @@ export const SignIn = (props) => {
     e.preventDefault();
     onLoginIn(...authData);
   };
+
   if (isAuth) {
     return <Redirect to="/Game" />;
   } else if (loading) {
@@ -73,6 +74,8 @@ export const SignIn = (props) => {
         <Preloader />
       </>
     );
+  } else if (mode == "resetPassword") {
+    return <Redirect to="/ResetPassword" />;
   }
   return (
     <>

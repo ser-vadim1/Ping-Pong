@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import * as firebase from "firebase";
-import { useReducer } from "react";
 
 export const AuthContext = React.createContext();
 
@@ -8,15 +7,18 @@ export const AuthLayout = ({ children }) => {
   const [isAuth, setAuth] = useState(false);
   const [_error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isResetPassword, setIsResetPassword] = useState("");
+  const [_actionCode, setActionCode] = useState("");
+  const [mode, setMode] = useState("");
   const [users, setUsers] = useState({
     email: "",
     displayName: "",
     password: "",
     timestamp: new Date().toLocaleString(),
+    score: "",
   });
   let auth = firebase.auth();
   let defaultDatabase = firebase.database();
-  let testGit = "Test git";
 
   const onLoginUp = async (email, password, displayName) => {
     try {
@@ -54,8 +56,10 @@ export const AuthLayout = ({ children }) => {
   };
   const onResetPassword = async (email) => {
     try {
-      await auth.sendPasswordResetEmail(email);
-      console.log("email sent");
+      await auth.sendPasswordResetEmail(email).then(() => {
+        setIsResetPassword(true);
+        console.log("email sent for reset password");
+      });
     } catch (error) {
       setError(error);
       console.log(error);
@@ -65,14 +69,17 @@ export const AuthLayout = ({ children }) => {
     auth.signOut();
     setAuth(false);
   };
+
   const handleVerifyEmail = async (auth, actionCode) => {
     try {
       await auth.applyActionCode(actionCode).then(() => {
         auth.onAuthStateChanged((user) => {
           if (user) {
-            defaultDatabase
-              .ref("users/" + user.uid)
-              .set({ ...users, email: user.email });
+            defaultDatabase.ref("users/" + user.uid).set({
+              ...users,
+              email: user.email,
+              displayName: user.displayName,
+            });
             setAuth(!!auth.currentUser);
           }
         });
@@ -83,13 +90,38 @@ export const AuthLayout = ({ children }) => {
       }
     }
   };
+  const handleResetPassword = async (auth, actionCode, newPassword) => {
+    let accountEmail = null;
+    let _newPassword = newPassword;
+
+    try {
+      await auth.verifyPasswordResetCode(actionCode).then((email) => {
+        accountEmail = email;
+      });
+      await auth
+        .confirmPasswordReset(actionCode, _newPassword)
+        .then((resp) => {});
+      await auth.signInWithEmailAndPassword(accountEmail, _newPassword);
+      if (auth.currentUser.emailVerified) {
+        setAuth(!!auth.currentUser);
+        setMode("");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
     let isMouth = true;
     let params = new URL(document.location).searchParams;
     let actionCode = params.get("oobCode");
     let mode = params.get("mode");
     let LoadTimer = null;
-    if (mode == "verifyEmail") handleVerifyEmail(auth, actionCode);
+    if (mode == "verifyEmail") {
+      handleVerifyEmail(auth, actionCode);
+    } else if (mode == "resetPassword") {
+      setMode(mode);
+      setActionCode(actionCode);
+    }
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -103,7 +135,6 @@ export const AuthLayout = ({ children }) => {
         setLoading(false);
       }
     });
-
     return () => {
       isMouth = false;
       clearTimeout(LoadTimer);
@@ -114,6 +145,10 @@ export const AuthLayout = ({ children }) => {
     <AuthContext.Provider
       value={{
         users,
+        isResetPassword,
+        _actionCode,
+        mode,
+        users,
         loading,
         _error,
         isAuth,
@@ -121,6 +156,7 @@ export const AuthLayout = ({ children }) => {
         onLoginUp,
         onLogout,
         onResetPassword,
+        handleResetPassword,
       }}
     >
       {children}

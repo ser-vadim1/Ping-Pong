@@ -1,38 +1,57 @@
-import React, { useState, useEffect, useRef, Fragment } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  Fragment,
+  useContext,
+} from "react";
 import usePaintBall from "../hooks/usePaintBall/usePaintBall.js";
-import { Canvas, WrapperCanvas, ComputerRocket, PlayerRocket } from "./styled";
+import {
+  Canvas,
+  WrapperCanvas,
+  ComputerRocket,
+  PlayerRocket,
+  HedearScore,
+  Container,
+} from "./styled";
 import * as firebase from "firebase";
+import { AuthContext } from "../../components/Auth/index";
+import { Score } from "../../pages/Score/Score.jsx";
+import { useCountRenders } from "../hooks/useCountRenders/useCountRenders";
 // COMPONENT
+
 const Game = () => {
   let canvasRef = useRef(null);
   let playerRocketRef = useRef(null);
   let ComputerRocketRef = useRef(null);
   let animateBall = useRef(null);
-  let animateRocketRef = useRef(null);
-  const [Score, SetScore] = useState(0);
+  let ScoreRef = useRef(0);
   const [width] = useState(window.innerWidth / 1.5);
   const [height] = useState(window.innerHeight / 1.5);
   let [top_PlayerRocket, setTop_PlayerRocket] = useState(height / 2 - 50);
   let [top_ComputerRocket, setTop_ComputerRocket] = useState(height / 2 - 50);
   const [startGame, setStartGame] = useState(false);
+  const [keyTimestamp, setKey] = useState([]);
   const [moveBall, setMoveBall] = useState({
     ballRadius: 10,
     x: 43,
     y: Math.round(height / 2),
-    speed_X: 4,
-    speed_Y: -4,
+    speed_X: 7,
+    speed_Y: -7,
     acceleration: 1.2,
   });
-
-  let userId = firebase.auth().currentUser.email;
-  const lol = () => {
-    console.log(userId);
-  };
+  const { email, uid, displayName } = firebase.auth().currentUser;
+  let db = firebase.database();
+  let time = new Date().toLocaleString();
 
   const paintBall = usePaintBall();
   useEffect(() => {
-    paintBall(canvasRef, moveBall.x, moveBall.y);
-  }, []);
+    let mount = true;
+    mount && paintBall(canvasRef, moveBall.x, moveBall.y, width, height);
+    return () => {
+      mount = false;
+    };
+  }, [startGame]);
 
   const replacePositionBall = () => {
     if (!startGame) {
@@ -42,29 +61,6 @@ const Game = () => {
       return;
     }
   };
-
-  useEffect(() => {
-    const animate = () => {
-      if (startGame) {
-        if (moveBall.y >= height - 50) {
-          setTop_ComputerRocket(height - 100);
-        } else if (moveBall.y - 50 <= 0) {
-          setTop_ComputerRocket(0);
-        } else {
-          setTop_ComputerRocket(moveBall.y - 50);
-        }
-        animateRocketRef.current = requestAnimationFrame(animate);
-      } else {
-        cancelAnimationFrame(animateRocketRef.current);
-        setTop_ComputerRocket(height / 2 - 50);
-      }
-    };
-    animate();
-    return () => {
-      cancelAnimationFrame(animateRocketRef.current);
-      cancelAnimationFrame(animateBall.current);
-    };
-  }, [startGame]);
 
   // MOVE ROCKET PLAYER
   const movePlayerRocket = (e) => {
@@ -81,12 +77,26 @@ const Game = () => {
   };
 
   // Move Ball
-  const movingBall = (e) => {
+  const movingBall = async (e) => {
     let topPlayer_R = playerRocketRef.current.offsetTop;
     let topComp_R = ComputerRocketRef.current.offsetTop;
     let { ballRadius } = moveBall;
-    setStartGame(true);
-    if (!startGame) {
+    if (moveBall.y - 50 <= 0) {
+      setTop_ComputerRocket(0);
+    } else if (moveBall.y >= height - 50) {
+      setTop_ComputerRocket(height - 100);
+    } else {
+      setTop_ComputerRocket(moveBall.y - 50);
+    }
+
+    if (startGame == false) {
+      setStartGame(true);
+      moveBall.x = moveBall.x + moveBall.speed_X;
+      moveBall.x += moveBall.speed_X;
+      moveBall.y += moveBall.speed_Y;
+      setMoveBall({ ...moveBall });
+      animateBall.current = requestAnimationFrame(movingBall);
+      paintBall(canvasRef, moveBall.x, moveBall.y, width, height);
       if (
         moveBall.y + moveBall.speed_Y > height - ballRadius ||
         moveBall.y + moveBall.speed_Y < ballRadius
@@ -98,15 +108,13 @@ const Game = () => {
         moveBall.y <= topComp_R + 100
       ) {
         moveBall.speed_X = -moveBall.speed_X;
-      } else if (moveBall.x < 0) {
-        moveBall.x = 43;
-        moveBall.y = Math.round(height / 2);
-        paintBall(canvasRef, moveBall.x, moveBall.y, width, height);
+      } else if (moveBall.x + ballRadius < 0) {
+        setMoveBall({ ...moveBall, x: 43, y: Math.round(height / 2) });
         setTop_PlayerRocket(height / 2 - 50);
+        setTop_ComputerRocket(height / 2 - 50);
         setStartGame(false);
-        SetScore((prev) => prev + 1);
+        ++ScoreRef.current;
         cancelAnimationFrame(animateBall.current);
-
         return;
       } else if (
         moveBall.x <= 40 &&
@@ -115,33 +123,31 @@ const Game = () => {
       ) {
         moveBall.speed_X = -moveBall.speed_X;
       }
-
-      moveBall.y += moveBall.speed_Y;
-      moveBall.x += moveBall.speed_X;
-      animateBall.current = requestAnimationFrame(movingBall);
-      paintBall(canvasRef, moveBall.x, moveBall.y, width, height);
     }
   };
 
   return (
     <Fragment>
-      <h4>SCORE</h4>
-      <h3>player: {Score} Computer: 0</h3>
-      <button onClick={lol}>click me</button>
-      <WrapperCanvas>
-        <Canvas
-          onTouchStart={movingBall}
-          ref={canvasRef}
-          width={width}
-          height={height}
-        ></Canvas>
-        <PlayerRocket
-          ref={playerRocketRef}
-          Top={top_PlayerRocket}
-          onTouchMove={movePlayerRocket}
-        />
-        <ComputerRocket ref={ComputerRocketRef} Top={top_ComputerRocket} />
-      </WrapperCanvas>
+      <Container>
+        <HedearScore>
+          {displayName}: {ScoreRef.current} - Computer: 0
+        </HedearScore>
+
+        <WrapperCanvas>
+          <Canvas
+            onTouchStart={movingBall}
+            ref={canvasRef}
+            width={width}
+            height={height}
+          ></Canvas>
+          <PlayerRocket
+            ref={playerRocketRef}
+            Top={top_PlayerRocket}
+            onTouchMove={movePlayerRocket}
+          />
+          <ComputerRocket ref={ComputerRocketRef} Top={top_ComputerRocket} />
+        </WrapperCanvas>
+      </Container>
     </Fragment>
   );
 };

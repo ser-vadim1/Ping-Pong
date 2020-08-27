@@ -10,7 +10,7 @@ import { AuthNav } from "../nav/nav";
 import { AuthContext } from "../Auth/index";
 
 export const _Router = () => {
-  const { isAuth } = useContext(AuthContext);
+  const { isAuth, mode } = useContext(AuthContext);
   return (
     <BrowserRouter>
       <AuthNav />

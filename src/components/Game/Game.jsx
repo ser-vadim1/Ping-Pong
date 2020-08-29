@@ -25,11 +25,11 @@ const Game = () => {
   let playerRocketRef = useRef(null);
   let ComputerRocketRef = useRef(null);
   let animateBall = useRef(null);
-  let ScoreRef = useRef(0);
   const [width] = useState(window.innerWidth / 1.5);
   const [height] = useState(window.innerHeight / 1.5);
-  let [top_PlayerRocket, setTop_PlayerRocket] = useState(height / 2 - 50);
-  let [top_ComputerRocket, setTop_ComputerRocket] = useState(height / 2 - 50);
+  const [score, setScore] = useState(0);
+  const [top_PlayerRocket, setTop_PlayerRocket] = useState(height / 2 - 50);
+  const [top_ComputerRocket, setTop_ComputerRocket] = useState(height / 2 - 50);
   const [startGame, setStartGame] = useState(false);
   const [keyTimestamp, setKey] = useState([]);
   const [moveBall, setMoveBall] = useState({
@@ -68,7 +68,7 @@ const Game = () => {
     let top = parseInt(e.changedTouches[0].clientY - canvasTop - 50);
     replacePositionBall();
     if (top <= 0) {
-      setTop_PlayerRocket((top = 0));
+      setTop_PlayerRocket(0);
     } else if (top > height - 100) {
       setTop_PlayerRocket(height - 100);
     } else {
@@ -89,7 +89,7 @@ const Game = () => {
       setTop_ComputerRocket(moveBall.y - 50);
     }
 
-    if (startGame == false) {
+    if (!startGame) {
       setStartGame(true);
       moveBall.x = moveBall.x + moveBall.speed_X;
       moveBall.x += moveBall.speed_X;
@@ -113,8 +113,9 @@ const Game = () => {
         setTop_PlayerRocket(height / 2 - 50);
         setTop_ComputerRocket(height / 2 - 50);
         setStartGame(false);
-        ++ScoreRef.current;
+        setScore((prev) => prev + 1);
         cancelAnimationFrame(animateBall.current);
+        animateBall.current = null;
         return;
       } else if (
         moveBall.x <= 40 &&
@@ -130,7 +131,7 @@ const Game = () => {
     <Fragment>
       <Container>
         <HedearScore>
-          {displayName}: {ScoreRef.current} - Computer: 0
+          {displayName}: {score} - Computer: 0
         </HedearScore>
 
         <WrapperCanvas>
